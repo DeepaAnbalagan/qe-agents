@@ -1,0 +1,5 @@
+services:
+  sut:
+    build: ./demo_api
+    ports:
+      - "8000:8000"

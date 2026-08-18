@@ -1,0 +1,126 @@
+{
+  "workflow_id": "a86ccaf1",
+  "artifact": "# Password Reset\n\nA user can reset their password using a token delivered by email.\n\nRequirements:\n- A valid token and valid password should reset the password.\n- An invalid token must be rejected.\n- An expired token must be rejected.\n- Passwords shorter than 8 characters must be rejected.\n- The reset endpoint is POST /reset-password.\n\nThe system should return HTTP 200 for a successful reset and HTTP 400 for invalid requests.\n\nSecurity note: the token should not be reusable.\n",
+  "requirement": {
+    "text": "# Password Reset\n\nA user can reset their password using a token delivered by email.\n\nRequirements:\n- A valid token and valid password should reset the password.\n- An invalid token must be rejected.\n- An expired token must be rejected.\n- Passwords shorter than 8 characters must be rejected.\n- The reset endpoint is POST /reset-password.\n\nThe system should return HTTP 200 for a successful reset and HTTP 400 for invalid requests.\n\nSecurity note: the token should not be reusable.\n",
+    "source": "artifact"
+  },
+  "test_plan": {
+    "summary": "Risk-based test plan for password reset using a one-time email token.",
+    "scenarios": [
+      {
+        "id": "PWD-001",
+        "title": "Valid reset",
+        "description": "Reset password with a valid token and valid password.",
+        "risk": "HIGH",
+        "priority": "P0",
+        "type": "positive"
+      },
+      {
+        "id": "PWD-002",
+        "title": "Expired token",
+        "description": "Reject a password reset request when the token is expired.",
+        "risk": "CRITICAL",
+        "priority": "P0",
+        "type": "negative"
+      },
+      {
+        "id": "PWD-003",
+        "title": "Invalid token",
+        "description": "Reject a malformed or unknown token.",
+        "risk": "HIGH",
+        "priority": "P0",
+        "type": "negative"
+      },
+      {
+        "id": "PWD-004",
+        "title": "Password boundary",
+        "description": "Validate the minimum and maximum password length.",
+        "risk": "MEDIUM",
+        "priority": "P1",
+        "type": "boundary"
+      }
+    ],
+    "ambiguities": [
+      "Token lifetime is not specified in the requirement.",
+      "The requirement does not state whether a reset token is single-use."
+    ]
+  },
+  "generated_tests": [
+    {
+      "id": "T-PWD-001",
+      "scenario_id": "PWD-001",
+      "filename": "test_valid_reset.py",
+      "code": "import os\nimport requests\n\ndef test_valid_reset():\n    base = os.getenv(\"QE_SUT_URL\", \"http://127.0.0.1:8000\")\n    r = requests.post(base + \"/reset-password\", json={\"token\":\"valid-token\",\"password\":\"NewPassword123\"})\n    assert r.status_code == 200\n"
+    },
+    {
+      "id": "T-PWD-002",
+      "scenario_id": "PWD-002",
+      "filename": "test_expired_token.py",
+      "code": "import os\nimport requests\n\ndef test_expired_token():\n    base = os.getenv(\"QE_SUT_URL\", \"http://127.0.0.1:8000\")\n    r = requests.post(base + \"/reset-password\", json={\"token\":\"expired-token\",\"password\":\"NewPassword123\"})\n    assert r.status_code == 400\n"
+    },
+    {
+      "id": "T-PWD-003",
+      "scenario_id": "PWD-003",
+      "filename": "test_invalid_token.py",
+      "code": "import os\nimport requests\n\ndef test_invalid_token():\n    base = os.getenv(\"QE_SUT_URL\", \"http://127.0.0.1:8000\")\n    r = requests.post(base + \"/reset-password\", json={\"token\":\"not-a-real-token\",\"password\":\"NewPassword123\"})\n    assert r.status_code == 400\n"
+    },
+    {
+      "id": "T-PWD-004",
+      "scenario_id": "PWD-004",
+      "filename": "test_password_boundary.py",
+      "code": "import os\nimport requests\n\ndef test_password_too_short():\n    base = os.getenv(\"QE_SUT_URL\", \"http://127.0.0.1:8000\")\n    r = requests.post(base + \"/reset-password\", json={\"token\":\"valid-token\",\"password\":\"short\"})\n    assert r.status_code == 400\n"
+    }
+  ],
+  "validation": {
+    "valid": true,
+    "errors": []
+  },
+  "test_run": {
+    "attempts": [
+      {
+        "attempt": 1,
+        "exit_code": 2,
+        "stdout": "\n==================================== ERRORS ====================================\n____________________ ERROR collecting test_expired_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_expired_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_expired_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n____________________ ERROR collecting test_invalid_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_invalid_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_invalid_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n__________________ ERROR collecting test_password_boundary.py __________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_password_boundary.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_password_boundary.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n_____________________ ERROR collecting test_valid_reset.py _____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_valid_reset.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_valid_reset.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n=========================== short test summary info ============================\nERROR test_expired_token.py\nERROR test_invalid_token.py\nERROR test_password_boundary.py\nERROR test_valid_reset.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!\n4 errors in 0.06s\n",
+        "stderr": ""
+      },
+      {
+        "attempt": 2,
+        "exit_code": 2,
+        "stdout": "\n==================================== ERRORS ====================================\n____________________ ERROR collecting test_expired_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_expired_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_expired_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n____________________ ERROR collecting test_invalid_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_invalid_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_invalid_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n__________________ ERROR collecting test_password_boundary.py __________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_password_boundary.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_password_boundary.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n_____________________ ERROR collecting test_valid_reset.py _____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_valid_reset.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_valid_reset.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n=========================== short test summary info ============================\nERROR test_expired_token.py\nERROR test_invalid_token.py\nERROR test_password_boundary.py\nERROR test_valid_reset.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!\n4 errors in 0.05s\n",
+        "stderr": ""
+      },
+      {
+        "attempt": 3,
+        "exit_code": 2,
+        "stdout": "\n==================================== ERRORS ====================================\n____________________ ERROR collecting test_expired_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_expired_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_expired_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n____________________ ERROR collecting test_invalid_token.py ____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_invalid_token.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_invalid_token.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n__________________ ERROR collecting test_password_boundary.py __________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_password_boundary.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_password_boundary.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n_____________________ ERROR collecting test_valid_reset.py _____________________\nImportError while importing test module '/private/var/folders/9z/gltsq6fj05b12g2g7bkv0m080000gn/T/tmpqvqgctuy/test_valid_reset.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntest_valid_reset.py:2: in <module>\n    import requests\nE   ModuleNotFoundError: No module named 'requests'\n=========================== short test summary info ============================\nERROR test_expired_token.py\nERROR test_invalid_token.py\nERROR test_password_boundary.py\nERROR test_valid_reset.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!!\n4 errors in 0.05s\n",
+        "stderr": ""
+      }
+    ],
+    "final_status": "FAILED"
+  },
+  "triaged_defect": {
+    "classification": "REAL_BUG",
+    "severity": "P1",
+    "priority": "P1",
+    "confidence": 0.9,
+    "title": "Password reset accepts an expired token",
+    "root_cause": "The system under test returns success for expired-token requests; the expected contract is HTTP 400.",
+    "evidence": [
+      "PWD-002 failed consistently across retries."
+    ],
+    "likely_owner": "Authentication team",
+    "duplicate_of": null
+  },
+  "report_path": "reports/qe-report-a86ccaf1.html",
+  "audit_log": [
+    "INGEST",
+    "PLAN",
+    "GENERATE",
+    "VALIDATE",
+    "EXECUTE",
+    "TRIAGE",
+    "REPORT: reports/qe-report-a86ccaf1.html",
+    "DONE"
+  ]
+}
